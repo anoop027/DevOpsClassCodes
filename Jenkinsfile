@@ -1,57 +1,33 @@
-#!/usr/bin/env groovy
-import hudson.model.*
-import hudson.EnvVars
-import groovy.json.JsonSlurperClassic
-import groovy.json.JsonBuilder
-import groovy.json.JsonOutput
-import java.net.URL
-try {
+pipeline {
+    agent any
 
-node{
- stage('Checkout') {
- git 'https://github.com/edureka-git/DevOpsClassCodes'
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "MyMaven"
+    }
 
- }
- stage('Build') {
- dir('') {
- sh 'mvn -B -V -U -e clean package'
- }
- }
- stage ('Email') {
- emailext attachLog: true, body: 'The status of the build can be obtained
-from the build log attached', subject: 'The build update is ', to: 'some
-email id'
-}
-stage('Deployment') {
- // Deployment
- script {
- echo "deployment"
- sh 'cp
-/var/lib/jenkins/workspace/package_1/target/addressbook.war
-/opt/tomcat/webapps/'
- }
- }
- stage('publish html report') {
- echo "publishing the html report"
- publishHTML([allowMissing: false, alwaysLinkToLastBuild:
-false, keepAll: false, reportDir: '', reportFiles: 'index.html', reportName:
-'HTML Report', reportTitles: ''])
- }
- stage('clean up') {
- echo "cleaning up the workspace"
- cleanWs()
- }
-}// node
-} // try end
-finally {
-
-
-(currentBuild.result != "ABORTED") && node("master") {
- // Send e-mail notifications for failed or unstable builds.
- // currentBuild.result must be non-null for this step to work.
- step([$class: 'Mailer',
- notifyEveryUnstableBuild: true,
- recipients: 'some email id',
- sendToIndividuals: true])
-}
+    stages {
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/anoop027/DevOpsClassCodes'
+                sh "mvn  clean package"
+            }
+        }
+    
+        stage('connect to ansible server') {
+            steps {
+                sshagent(['ansible-user']) {
+                   sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/Java-Tomcat-project1/target/addressbook.war ec2-user@172.31.17.178:/artifact"
+                   
+                }
+            }
+        }   
+        stage('run ansible file') {
+        agent {label 'ansib1'}
+            steps {
+                ansiblePlaybook becomeUser: 'ec2-user', credentialsId: 'ansible-key', installation: 'Ansible1', inventory: '/etc/ansible/hosts', playbook: '/artifact/copy-artifact.yml'
+                }
+            }
+        }
 }
