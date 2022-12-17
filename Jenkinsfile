@@ -10,7 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 // Get some code from a GitHub repository
-                git 'https://github.com/anoop027/DevOpsClassCodes'
+                git 'https://github.com/doct15/example-tomcat-war'
                 sh "mvn  clean package"
             }
         }
