@@ -30,4 +30,13 @@ pipeline {
                 }
             }
         }
+        stage('build docker file') {
+            steps {
+                withCredentials([string(credentialsId: 'dockerpasswd', variable: 'dockerpwd')]) {
+               
+                sh "docker login -u anoopd27 -p ${dockerpwd}"
+                }
+                sh "docker build -t anoopd27/pvtrepo1 ."
+            }
+        }
 }
