@@ -18,7 +18,7 @@ pipeline {
         stage('connect to ansible server') {
             steps {
                 sshagent(['ansible-user']) {
-                   sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/Java-Tomcat-project1/target/addressbook.war ec2-user@172.31.17.178:/artifact"
+                   sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/Java-Tomcat-project1/target/SimpleTomcatWebApp.war ec2-user@172.31.17.178:/artifact"
                    
                 }
             }
